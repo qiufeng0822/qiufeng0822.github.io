@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>麻将积分计算器</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+        }
+
+        body {
+            background-color: #f5f0e8;
+            color: #333;
+            padding-bottom: 20px;
+        }
+
+        .container {
+            max-width: 420px;
+            margin: 0 auto;
+            padding: 15px;
+        }
+
+        /* 标题样式 */
+        .page-title {
+            text-align: center;
+            font-size: 22px;
+            font-weight: bold;
+            color: #8B4513;
+            margin: 20px 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        /* 模块样式 */
+        .module {
+            background-color: #fff;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .module-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #8B4513;
+            margin-bottom: 15px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #eee;
+        }
+
+        /* 大小选择样式 */
+        .size-options {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .size-option {
+            flex: 1;
+            height: 44px;
+            line-height: 44px;
+            text-align: center;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .size-option.active {
+            background-color: #8B4513;
+            color: #fff;
+            border-color: #8B4513;
+        }
+
+        /* 牌型分数区 */
+        .card-type-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .card-type-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .card-type-name {
+            font-size: 16px;
+            color: #333;
+        }
+
+        .card-type-input {
+            width: 80px;
+            height: 38px;
+            text-align: center;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 16px;
+        }
+
+        /* 玩家设置区 */
+        .player-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .player-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .player-label {
+            font-size: 16px;
+            width: 60px;
+        }
+
+        .player-input {
+            flex: 1;
+            height: 44px;
+            padding: 0 10px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+
+        /* 按钮通用样式 */
+        .btn {
+            width: 100%;
+            height: 50px;
+            line-height: 50px;
+            text-align: center;
+            background-color: #8B4513;
+            color: #fff;
+            border: none;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: background-color 0.2s;
+        }
+
+        .btn:hover {
+            background-color: #A0522D;
+        }
+
+        /* 结算页样式 */
+        #calculate-page {
+            display: none;
+        }
+
+        .back-btn {
+            width: auto;
+            padding: 0 15px;
+            height: 40px;
+            line-height: 40px;
+            font-size: 16px;
+            margin: 0 0 20px 0;
+            display: inline-block;
+        }
+
+        .score-player-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .score-player-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background-color: #fff;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .player-name {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .player-score {
+            font-size: 20px;
+            font-weight: bold;
+            min-width: 60px;
+            text-align: center;
+        }
+
+        .score-positive {
+            color: #2E8B57;
+        }
+
+        .score-negative {
+            color: #DC143C;
+        }
+
+        .score-zero {
+            color: #333;
+        }
+
+        .player-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .action-btn {
+            width: 70px;
+            height: 36px;
+            line-height: 36px;
+            font-size: 14px;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+        }
+
+        .zim-btn {
+            background-color: #4169E1;
+            color: #fff;
+        }
+
+        .chihu-btn {
+            background-color: #FF8C00;
+            color: #fff;
+        }
+
+        /* 弹窗样式 */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 999;
+        }
+
+        .modal-content {
+            background-color: #fff;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 350px;
+            padding: 20px;
+        }
+
+        .modal-title {
+            font-size: 18px;
+            font-weight: 600;
+            text-align: center;
+            margin-bottom: 15px;
+            color: #8B4513;
+        }
+
+        .modal-options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .modal-option {
+            padding: 10px 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .modal-option.active {
+            background-color: #8B4513;
+            color: #fff;
+            border-color: #8B4513;
+        }
+
+        .modal-footer {
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .modal-close {
+            padding: 10px 20px;
+            background-color: #eee;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+    <!-- 1. 设置页（默认显示） -->
+    <div id="setting-page" class="container">
+        <h1 class="page-title">🀄 麻将积分计算器</h1>
+
+        <!-- 打多大模块 -->
+        <div class="module">
+            <h2 class="module-title">打多大</h2>
+            <div class="size-options">
+                <div class="size-option" data-value="1">123</div>
+                <div class="size-option" data-value="2">246</div>
+                <div class="size-option" data-value="5">555</div>
+            </div>
+
+            <!-- 6种牌型分数区 -->
+            <div class="card-type-list">
+                <div class="card-type-item">
+                    <span class="card-type-name">鸡胡</span>
+                    <input type="number" class="card-type-input" id="jihu" readonly>
+                </div>
+                <div class="card-type-item">
+                    <span class="card-type-name">杂色</span>
+                    <input type="number" class="card-type-input" id="zase" readonly>
+                </div>
+                <div class="card-type-item">
+                    <span class="card-type-name">对对胡</span>
+                    <input type="number" class="card-type-input" id="duiduihu" readonly>
+                </div>
+                <div class="card-type-item">
+                    <span class="card-type-name">清一色</span>
+                    <input type="number" class="card-type-input" id="qingyise" readonly>
+                </div>
+                <div class="card-type-item">
+                    <span class="card-type-name">大哥</span>
+                    <input type="number" class="card-type-input" id="dage" readonly>
+                </div>
+                <div class="card-type-item">
+                    <span class="card-type-name">十三幺</span>
+                    <input type="number" class="card-type-input" id="shisanyao" readonly>
+                </div>
+            </div>
+        </div>
+
+        <!-- 玩家设置模块 -->
+        <div class="module">
+            <h2 class="module-title">玩家设置</h2>
+            <div class="player-list">
+                <div class="player-item">
+                    <label class="player-label">玩家1：</label>
+                    <input type="text" class="player-input" id="player1" placeholder="请输入名称" value="玩家1">
+                </div>
+                <div class="player-item">
+                    <label class="player-label">玩家2：</label>
+                    <input type="text" class="player-input" id="player2" placeholder="请输入名称" value="玩家2">
+                </div>
+                <div class="player-item">
+                    <label class="player-label">玩家3：</label>
+                    <input type="text" class="player-input" id="player3" placeholder="请输入名称" value="玩家3">
+                </div>
+                <div class="player-item">
+                    <label class="player-label">玩家4：</label>
+                    <input type="text" class="player-input" id="player4" placeholder="请输入名称" value="玩家4">
+                </div>
+            </div>
+        </div>
+
+        <button class="btn" id="start-btn">开始麻将</button>
+    </div>
+
+    <!-- 2. 结算页（默认隐藏） -->
+    <div id="calculate-page" class="container">
+        <button class="btn back-btn" id="back-btn">返回设置</button>
+        <h1 class="page-title">🀄 积分结算</h1>
+
+        <div class="score-player-list">
+            <div class="score-player-item">
+                <span class="player-name" id="score-player1">玩家1</span>
+                <span class="player-score score-zero" id="score1">0</span>
+                <div class="player-actions">
+                    <button class="action-btn zim-btn" data-player="1">自摸</button>
+                    <button class="action-btn chihu-btn" data-player="1">吃胡</button>
+                </div>
+            </div>
+            <div class="score-player-item">
+                <span class="player-name" id="score-player2">玩家2</span>
+                <span class="player-score score-zero" id="score2">0</span>
+                <div class="player-actions">
+                    <button class="action-btn zim-btn" data-player="2">自摸</button>
+                    <button class="action-btn chihu-btn" data-player="2">吃胡</button>
+                </div>
+            </div>
+            <div class="score-player-item">
+                <span class="player-name" id="score-player3">玩家3</span>
+                <span class="player-score score-zero" id="score3">0</span>
+                <div class="player-actions">
+                    <button class="action-btn zim-btn" data-player="3">自摸</button>
+                    <button class="action-btn chihu-btn" data-player="3">吃胡</button>
+                </div>
+            </div>
+            <div class="score-player-item">
+                <span class="player-name" id="score-player4">玩家4</span>
+                <span class="player-score score-zero" id="score4">0</span>
+                <div class="player-actions">
+                    <button class="action-btn zim-btn" data-player="4">自摸</button>
+                    <button class="action-btn chihu-btn" data-player="4">吃胡</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. 自摸弹窗 -->
+    <div class="modal" id="zim-modal">
+        <div class="modal-content">
+            <h3 class="modal-title">选择胡牌类型</h3>
+            <div class="modal-options" id="zim-options">
+                <div class="modal-option" data-type="jihu">鸡胡</div>
+                <div class="modal-option" data-type="zase">杂色</div>
+                <div class="modal-option" data-type="duiduihu">对对胡</div>
+                <div class="modal-option" data-type="qingyise">清一色</div>
+                <div class="modal-option" data-type="dage">大哥</div>
+                <div class="modal-option" data-type="shisanyao">十三幺</div>
+            </div>
+            <div class="modal-footer">
+                <button class="modal-close" id="zim-close">取消</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 4. 吃胡弹窗 -->
+    <div class="modal" id="chihu-modal">
+        <div class="modal-content">
+            <h3 class="modal-title">选择被胡玩家</h3>
+            <div class="modal-options" id="chihu-player-options">
+                <!-- 动态生成其余玩家 -->
+            </div>
+            <h3 class="modal-title" style="margin-top: 20px;">选择胡牌类型</h3>
+            <div class="modal-options" id="chihu-type-options">
+                <div class="modal-option" data-type="zase">杂色</div>
+                <div class="modal-option" data-type="duiduihu">对对胡</div>
+                <div class="modal-option" data-type="qingyise">清一色</div>
+                <div class="modal-option" data-type="dage">大哥</div>
+                <div class="modal-option" data-type="shisanyao">十三幺</div>
+            </div>
+            <div class="modal-footer">
+                <button class="modal-close" id="chihu-close">取消</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 核心数据：6种牌型基础倍数
+        const cardTypeBase = {
+            jihu: 3,
+            zase: 6,
+            duiduihu: 9,
+            qingyise: 15,
+            dage: 24,
+            shisanyao: 39
+        };
+        let selectedSize = 1; // 默认选中123
+        let currentPlayer = 0; // 当前操作的玩家
+        let selectedChihuPlayer = 0; // 吃胡选中的被胡玩家
+        let selectedCardType = ''; // 选中的牌型
+
+        // DOM元素获取
+        const sizeOptions = document.querySelectorAll('.size-option');
+        const startBtn = document.getElementById('start-btn');
+        const backBtn = document.getElementById('back-btn');
+        const settingPage = document.getElementById('setting-page');
+        const calculatePage = document.getElementById('calculate-page');
+        const zimModal = document.getElementById('zim-modal');
+        const chihuModal = document.getElementById('chihu-modal');
+        const zimOptions = document.getElementById('zim-options');
+        const chihuPlayerOptions = document.getElementById('chihu-player-options');
+        const chihuTypeOptions = document.getElementById('chihu-type-options');
+        const zimClose = document.getElementById('zim-close');
+        const chihuClose = document.getElementById('chihu-close');
+
+        // 1. 初始化大小选择逻辑
+        sizeOptions.forEach(option => {
+            option.addEventListener('click', () => {
+                sizeOptions.forEach(opt => opt.classList.remove('active'));
+                option.classList.add('active');
+                selectedSize = parseInt(option.dataset.value);
+                updateCardTypeScores(); // 更新牌型分数
+            });
+        });
+
+        // 2. 计算并更新牌型分数
+        function updateCardTypeScores() {
+            for (const type in cardTypeBase) {
+                document.getElementById(type).value = cardTypeBase[type] * selectedSize;
+            }
+        }
+
+        // 3. 开始麻将：切换到结算页
+        startBtn.addEventListener('click', () => {
+            if (!document.querySelector('.size-option.active')) {
+                alert('请先选择“打多大”的档位！');
+                return;
+            }
+            // 保存玩家名称到结算页
+            document.getElementById('score-player1').textContent = document.getElementById('player1').value || '玩家1';
+            document.getElementById('score-player2').textContent = document.getElementById('player2').value || '玩家2';
+            document.getElementById('score-player3').textContent = document.getElementById('player3').value || '玩家3';
+            document.getElementById('score-player4').textContent = document.getElementById('player4').value || '玩家4';
+            // 切换页面显示
+            settingPage.style.display = 'none';
+            calculatePage.style.display = 'block';
+        });
+
+        // 4. 返回设置页
+        backBtn.addEventListener('click', () => {
+            calculatePage.style.display = 'none';
+            settingPage.style.display = 'block';
+        });
+
+        // 5. 自摸按钮点击逻辑
+        document.querySelectorAll('.zim-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                currentPlayer = parseInt(btn.dataset.player);
+                resetModalOptions(); // 重置弹窗选中状态
+                zimModal.style.display = 'flex'; // 显示自摸弹窗
+            });
+        });
+
+        // 6. 吃胡按钮点击逻辑
+        document.querySelectorAll('.chihu-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                currentPlayer = parseInt(btn.dataset.player);
+                resetModalOptions();
+                generateChihuPlayerOptions(); // 生成被胡玩家选项
+                chihuModal.style.display = 'flex'; // 显示吃胡弹窗
+            });
+        });
+
+        // 7. 生成吃胡的被胡玩家选项（排除当前玩家）
+        function generateChihuPlayerOptions() {
+            chihuPlayerOptions.innerHTML = '';
+            const playerNames = [
+                document.getElementById('score-player1').textContent,
+                document.getElementById('score-player2').textContent,
+                document.getElementById('score-player3').textContent,
+                document.getElementById('score-player4').textContent
+            ];
+            for (let i = 1; i <= 4; i++) {
+                if (i !== currentPlayer) {
+                    const option = document.createElement('div');
+                    option.className = 'modal-option';
+                    option.dataset.player = i;
+                    option.textContent = playerNames[i-1];
+                    option.addEventListener('click', () => {
+                        chihuPlayerOptions.querySelectorAll('.modal-option').forEach(opt => opt.classList.remove('active'));
+                        option.classList.add('active');
+                        selectedChihuPlayer = parseInt(option.dataset.player);
+                    });
+                    chihuPlayerOptions.appendChild(option);
+                }
+            }
+        }
+
+        // 8. 自摸牌型选择 & 积分计算
+        zimOptions.querySelectorAll('.modal-option').forEach(option => {
+            option.addEventListener('click', () => {
+                selectedCardType = option.dataset.type;
+                calculateZimScore(); // 计算自摸积分
+                zimModal.style.display = 'none'; // 关闭弹窗
+            });
+        });
+
+        // 9. 吃胡牌型选择 & 积分计算
+        chihuTypeOptions.querySelectorAll('.modal-option').forEach(option => {
+            option.addEventListener('click', () => {
+                if (!selectedChihuPlayer) {
+                    alert('请先选择被胡玩家！');
+                    return;
+                }
+                selectedCardType = option.dataset.type;
+                calculateChihuScore(); // 计算吃胡积分
+                chihuModal.style.display = 'none'; // 关闭弹窗
+            });
+        });
+
+        // 10. 自摸积分计算规则：当前玩家+3倍，其余-1倍
+        function calculateZimScore() {
+            const score = parseInt(document.getElementById(selectedCardType).value);
+            // 当前玩家加分
+            const currentScore = parseInt(document.getElementById(`score${currentPlayer}`).textContent);
+            updateScoreDisplay(`score${currentPlayer}`, currentScore + score * 3);
+            // 其余玩家减分
+            for (let i = 1; i <= 4; i++) {
+                if (i !== currentPlayer) {
+                    const playerScore = parseInt(document.getElementById(`score${i}`).textContent);
+                    updateScoreDisplay(`score${i}`, playerScore - score);
+                }
+            }
+        }
+
+        // 11. 吃胡积分计算规则：当前玩家+1倍，被胡玩家-1倍
+        function calculateChihuScore() {
+            const score = parseInt(document.getElementById(selectedCardType).value);
+            // 当前玩家加分
+            const currentScore = parseInt(document.getElementById(`score${currentPlayer}`).textContent);
+            updateScoreDisplay(`score${currentPlayer}`, currentScore + score);
+            // 被胡玩家减分
+            const beihuScore = parseInt(document.getElementById(`score${selectedChihuPlayer}`).textContent);
+            updateScoreDisplay(`score${selectedChihuPlayer}`, beihuScore - score);
+        }
+
+        // 12. 更新积分显示（含颜色区分：正绿/负红/零黑）
+        function updateScoreDisplay(scoreId, score) {
+            const el = document.getElementById(scoreId);
+            el.textContent = score;
+            el.classList.remove('score-positive', 'score-negative', 'score-zero');
+            if (score > 0) el.classList.add('score-positive');
+            else if (score < 0) el.classList.add('score-negative');
+            else el.classList.add('score-zero');
+        }
+
+        // 13. 重置弹窗选中状态
+        function resetModalOptions() {
+            selectedChihuPlayer = 0;
+            selectedCardType = '';
+            zimOptions.querySelectorAll('.modal-option').forEach(opt => opt.classList.remove('active'));
+            chihuPlayerOptions.querySelectorAll('.modal-option').forEach(opt => opt.classList.remove('active'));
+            chihuTypeOptions.querySelectorAll('.modal-option').forEach(opt => opt.classList.remove('active'));
+        }
+
+        // 14. 关闭弹窗
+        zimClose.addEventListener('click', () => {
+            zimModal.style.display = 'none';
+            resetModalOptions();
+        });
+        chihuClose.addEventListener('click', () => {
+            chihuModal.style.display = 'none';
+            resetModalOptions();
+        });
+
+        // 初始化：默认选中123并计算分数
+        document.querySelector('.size-option[data-value="1"]').click();
+    </script>
+</body>
+</html>
